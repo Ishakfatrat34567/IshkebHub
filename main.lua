@@ -1,3 +1,79 @@
+-- ⚡ ISHKEBHUB LOADER ANIMATION (INTEGRATED VERSION)
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+local loaderScreen = Instance.new("ScreenGui", CoreGui)
+loaderScreen.Name = "IshkebLoader"
+loaderScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+loaderScreen.ResetOnSpawn = false
+
+-- 🔳 Background
+local bg = Instance.new("Frame", loaderScreen)
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+bg.BackgroundTransparency = 1
+bg.ZIndex = 10
+TweenService:Create(bg, TweenInfo.new(0.5), {BackgroundTransparency = 0.4}):Play()
+
+-- 🧠 Loading Text
+local textLabel = Instance.new("TextLabel", bg)
+textLabel.Size = UDim2.new(0, 500, 0, 50)
+textLabel.Position = UDim2.new(0.5, -250, 0.5, -75)
+textLabel.BackgroundTransparency = 1
+textLabel.TextColor3 = Color3.new(1, 1, 1)
+textLabel.Font = Enum.Font.GothamBold
+textLabel.TextScaled = true
+textLabel.Text = "Loading IshkebHub..."
+textLabel.ZIndex = 11
+
+-- 📶 Progress Bar Frame
+local barFrame = Instance.new("Frame", bg)
+barFrame.Size = UDim2.new(0, 500, 0, 10)
+barFrame.Position = UDim2.new(0.5, -250, 0.5, -10)
+barFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+barFrame.BorderSizePixel = 0
+barFrame.ZIndex = 11
+Instance.new("UICorner", barFrame).CornerRadius = UDim.new(1, 0)
+
+-- 🔴 Fill
+local barFill = Instance.new("Frame", barFrame)
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+barFill.BorderSizePixel = 0
+barFill.ZIndex = 12
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+-- ⏳ Animate Loading Bar Smoothly
+spawn(function()
+	for i = 1, 100 do
+		barFill.Size = UDim2.new(i / 100, 0, 1, 0)
+		wait(0.015)
+	end
+end)
+
+-- 💤 Fake Delay (matches animation)
+wait(1.6)
+
+-- ✅ Now we continue to execute the actual GUI
+-- We'll build your full IshkebHub UI below after animation plays
+-- 🚀 MAIN GUI EXECUTION
+pcall(function()
+    -- Insert your full IshkebHub script here 👇👇👇
+    
+    -- Example:
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local StarterGui = game:GetService("StarterGui")
+
+    StarterGui:SetCore("SendNotification", {
+        Title = "IshkebHub",
+        Text = "GUI has loaded successfully!",
+        Duration = 4
+    })
+
+    -- YOUR FULL GUI STARTS HERE...
+    -- (Paste everything from Part 1 to 6 of your menu here)
+
+end)
 -- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -381,3 +457,10 @@ RunService.RenderStepped:Connect(function()
         Humanoid.JumpPower = JumpPower
     end
 end)
+-- 🧼 FADE OUT ANIMATION & CLEANUP
+TweenService:Create(bg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(textLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+TweenService:Create(barFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+wait(0.6)
+loaderScreen:Destroy()
