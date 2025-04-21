@@ -35,7 +35,14 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     Humanoid = char:WaitForChild("Humanoid")
 end)
 
-local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+local gui = Instance.new("ScreenGui")
+gui.Name = "IshkebGUI"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 9999 -- MAX ORDER
+gui.Parent = game:GetService("CoreGui")
+
 gui.Name = "IshkebGUI"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
