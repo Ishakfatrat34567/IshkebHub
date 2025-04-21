@@ -426,4 +426,115 @@ UserInputService.InputBegan:Connect(function(input, gp)
 			gui.Enabled = not gui.Enabled
 		end
 	end
+end)-- 🔧 GUI ALWAYS ON TOP PATCH
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+
+-- ⚠️ Move GUI to CoreGui if not already
+if gui and not gui:IsDescendantOf(CoreGui) then
+	gui.Parent = CoreGui
+end
+
+-- 💥 Boost DisplayOrder and ZIndex
+gui.DisplayOrder = 9999
+gui.IgnoreGuiInset = true
+
+if mainFrame then
+	mainFrame.ZIndex = 99
+	for _, desc in ipairs(mainFrame:GetDescendants()) do
+		if desc:IsA("GuiObject") then
+			desc.ZIndex = 100
+		end
+	end
+end
+
+-- 🧠 RightCtrl Toggle for GUI Visibility
+UserInputService.InputBegan:Connect(function(input, gp)
+	if input.KeyCode == Enum.KeyCode.RightControl and not gp then
+		if gui then
+			gui.Enabled = not gui.Enabled
+		end
+	end
 end)
+
+-- 🔔 Reminder notification
+StarterGui:SetCore("SendNotification", {
+	Title = "IshkebHub",
+	Text = "-- Press RightCtrl to hide/show the menu --",
+	Duration = 10
+})
+-- 🔁 ESP FIX: Handle Player Respawns
+local function hookPlayer(player)
+	player.CharacterAdded:Connect(function(char)
+		char:WaitForChild("HumanoidRootPart", 5)
+		task.wait(0.5)
+		if ESPEnabled and char:FindFirstChild("HumanoidRootPart") then
+			-- Clean old cham if any
+			if Chams[player] then
+				Chams[player]:Destroy()
+				Chams[player] = nil
+			end
+
+			-- Add fresh cham
+			local highlight = Instance.new("Highlight")
+			highlight.Adornee = char
+			highlight.FillTransparency = 0.5
+			highlight.OutlineTransparency = 0
+			highlight.FillColor = (player.Team == LocalPlayer.Team) and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+			highlight.Parent = char
+			Chams[player] = highlight
+		end
+	end)
+end
+
+-- 🔁 Hook all current players
+for _, p in ipairs(Players:GetPlayers()) do
+	if p ~= LocalPlayer then
+		hookPlayer(p)
+	end
+end
+
+-- 🔁 Hook future players too
+Players.PlayerAdded:Connect(function(p)
+	if p ~= LocalPlayer then
+		hookPlayer(p)
+	end
+end)
+-- 🔥 AUTO-DETECT NEW PLAYERS FOR ESP
+local function applyESPToPlayer(player)
+	player.CharacterAdded:Connect(function(char)
+		char:WaitForChild("HumanoidRootPart", 5)
+		task.wait(0.5)
+		if ESPEnabled and char:FindFirstChild("HumanoidRootPart") then
+			if Chams[player] then
+				Chams[player]:Destroy()
+				Chams[player] = nil
+			end
+
+			local highlight = Instance.new("Highlight")
+			highlight.Adornee = char
+			highlight.FillTransparency = 0.5
+			highlight.OutlineTransparency = 0
+			highlight.FillColor = (player.Team == LocalPlayer.Team) and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+			highlight.Parent = char
+			Chams[player] = highlight
+		end
+	end)
+end
+
+-- 🌐 Detect new players joining
+Players.PlayerAdded:Connect(function(player)
+	if player ~= LocalPlayer then
+		applyESPToPlayer(player)
+	end
+end)
+
+-- 👥 Also apply to already existing players just in case
+for _, player in ipairs(Players:GetPlayers()) do
+	if player ~= LocalPlayer then
+		applyESPToPlayer(player)
+	end
+end
