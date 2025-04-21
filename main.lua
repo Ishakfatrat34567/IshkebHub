@@ -405,4 +405,18 @@ StarterGui:SetCore("SendNotification", {
 	Duration = 5
 })
 
-print("🔥 IshkebHub Final Neon Red Fully Operational 🔥")
+print("🔥 IshkebHub Final Neon Red Fully Operational 🔥")-- 🔔 Notify player of the toggle key
+StarterGui:SetCore("SendNotification", {
+    Title = "IshkebHub",
+    Text = "-- Press RightCtrl to hide/show the menu --",
+    Duration = 10
+})
+
+-- 🛠️ FIXED: Right Ctrl GUI Toggle Handler
+UserInputService.InputBegan:Connect(function(input, gp)
+	if input.KeyCode == Enum.KeyCode.RightControl and not gp then
+		if gui then
+			gui.Enabled = not gui.Enabled
+		end
+	end
+end)
