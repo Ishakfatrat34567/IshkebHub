@@ -537,4 +537,103 @@ for _, player in ipairs(Players:GetPlayers()) do
 	if player ~= LocalPlayer then
 		applyESPToPlayer(player)
 	end
+end-- 🔧 EXTEND MENU HEIGHT SLIGHTLY TO FIT TOGGLE
+mainFrame.Size = UDim2.new(0, 800, 0, 540)
+
+-- 🏷️ Nametag Toggle System (auto-refresh + ESP check + small text)
+local NameTags = {}
+local ShowNameTags = false
+
+local function createNametag(player)
+	if not player.Character or not player.Character:FindFirstChild("Head") then return end
+	if NameTags[player] then NameTags[player]:Destroy() end
+
+	local tag = Instance.new("BillboardGui")
+	tag.Name = "IshkebNameTag"
+	tag.Adornee = player.Character.Head
+	tag.Size = UDim2.new(0, 200, 0, 25)
+	tag.StudsOffset = Vector3.new(0, 2.5, 0)
+	tag.AlwaysOnTop = true
+	tag.Parent = player.Character
+
+	local label = Instance.new("TextLabel", tag)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextScaled = true
+	label.Font = Enum.Font.Gotham
+	label.Text = player.DisplayName
+	label.TextSize = 12
+
+	NameTags[player] = tag
 end
+
+local function removeNametag(player)
+	if NameTags[player] then
+		NameTags[player]:Destroy()
+		NameTags[player] = nil
+	end
+end
+
+-- 🔁 Hook players for fresh char spawns
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function()
+		wait(0.5)
+		if ESPEnabled and ShowNameTags then
+			createNametag(player)
+		end
+	end)
+end)
+
+-- 🔁 Apply to all players right now
+for _, p in ipairs(Players:GetPlayers()) do
+	if p ~= LocalPlayer then
+		p.CharacterAdded:Connect(function()
+			wait(0.5)
+			if ESPEnabled and ShowNameTags then
+				createNametag(p)
+			end
+		end)
+	end
+end
+
+-- 🔁 Real-Time Refresh Loop (every 0.2s)
+task.spawn(function()
+	while true do
+		if ShowNameTags and ESPEnabled then
+			for _, player in ipairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+					createNametag(player)
+				else
+					removeNametag(player)
+				end
+			end
+		else
+			for _, tag in pairs(NameTags) do
+				tag:Destroy()
+			end
+			table.clear(NameTags)
+		end
+		task.wait(0.2)
+	end
+end)
+
+-- 🧠 ESP Tab Toggle
+createToggle(espTab, "Nametags", 410, false, function(v)
+	ShowNameTags = v
+end)
+-- 🛠️ FIXED: Right Ctrl GUI Toggle Handler (cleaned + safe)
+UserInputService.InputBegan:Connect(function(input, gp)
+	if input.KeyCode == Enum.KeyCode.RightControl and not gp then
+		if gui then
+			gui.Enabled = not gui.Enabled
+		end
+	end
+end)
+
+-- 🔔 Reminder Notification for Toggle Key
+StarterGui:SetCore("SendNotification", {
+	Title = "IshkebHub",
+	Text = "-- Press RightCtrl to hide/show the menu --",
+	Duration = 10
+})
