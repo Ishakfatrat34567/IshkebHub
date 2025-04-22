@@ -703,4 +703,22 @@ RunService.RenderStepped:Connect(function()
 	else
 		LineESP.Visible = false
 	end
+end)-- 🐰 Auto Bunny Hop System
+
+local AutoBunnyHop = false
+local lastJump = 0
+
+-- 📍 Toggle for Bunny Hop (Moved down so it doesn’t cover anything)
+createToggle(playerTab, "Auto Bunny Hop", 250, false, function(state)
+	AutoBunnyHop = state
+end)
+
+-- 🔁 Loop for continuous hop when grounded
+RunService.RenderStepped:Connect(function()
+	if AutoBunnyHop and Humanoid and Humanoid:GetState() == Enum.HumanoidStateType.Running then
+		if tick() - lastJump > 0.35 and Humanoid.FloorMaterial ~= Enum.Material.Air then
+			Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			lastJump = tick()
+		end
+	end
 end)
