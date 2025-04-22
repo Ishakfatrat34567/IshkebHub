@@ -48,7 +48,7 @@ gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.new(0, 800, 0, 500)
+mainFrame.Size = UDim2.new(0, 800, 0, 580)
 mainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.BorderSizePixel = 0
@@ -538,7 +538,7 @@ for _, player in ipairs(Players:GetPlayers()) do
 		applyESPToPlayer(player)
 	end
 end-- 🔧 EXTEND MENU HEIGHT SLIGHTLY TO FIT TOGGLE
-mainFrame.Size = UDim2.new(0, 800, 0, 540)
+mainFrame.Size = UDim2.new(0, 800, 0, 640)
 
 -- 🏷️ Nametag Toggle System (auto-refresh + ESP check + small text)
 local NameTags = {}
@@ -636,4 +636,71 @@ StarterGui:SetCore("SendNotification", {
 	Title = "IshkebHub",
 	Text = "-- Press RightCtrl to hide/show the menu --",
 	Duration = 10
-})
+})-- 💀 ABSOLUTE OVERLAY DOMINANCE PATCH 💀
+
+-- 🛡️ Try putting it in CoreGui if possible
+pcall(function()
+	gui.Parent = game:GetService("CoreGui")
+end)
+
+-- 💥 Force highest DisplayOrder and ZIndex on all children
+gui.DisplayOrder = 999999
+gui.IgnoreGuiInset = true
+gui.Enabled = true
+
+local function forceZIndex(guiObj)
+	if guiObj:IsA("GuiObject") then
+		guiObj.ZIndex = 999999
+	end
+	for _, child in ipairs(guiObj:GetChildren()) do
+		forceZIndex(child)
+	end
+end
+
+forceZIndex(gui)
+
+-- 🧠 Also reconnect on every render just to be sure
+RunService.RenderStepped:Connect(function()
+	gui.DisplayOrder = 999999
+	forceZIndex(gui)
+end)
+
+-- 🧼 Kill any BlurEffects (they mess with visibility sometimes)
+for _, v in ipairs(game:GetService("Lighting"):GetChildren()) do
+	if v:IsA("BlurEffect") then
+		v:Destroy()
+	end
+end
+-- 🧿 Target Line ESP System 🔥
+local ShowTargetLine = false
+local LineESP = Drawing.new("Line")
+LineESP.Visible = false
+LineESP.Color = Color3.fromRGB(255, 0, 0)
+LineESP.Thickness = 2
+LineESP.Transparency = 1
+
+-- 👁️ ESP Tab Toggle for Line
+createToggle(espTab, "Target Line ESP", 455, false, function(state)
+	ShowTargetLine = state
+	if not state then
+		LineESP.Visible = false
+	end
+end)
+
+-- 🔁 Update Every Frame
+RunService.RenderStepped:Connect(function()
+	if ShowTargetLine and ESPEnabled and LockedTarget and LockedTarget.Character and LockedTarget.Character:FindFirstChild("Head") then
+		local headPos = LockedTarget.Character.Head.Position
+		local screenPos, onScreen = Camera:WorldToViewportPoint(headPos)
+		if onScreen then
+			local mousePos = UserInputService:GetMouseLocation() - Vector2.new(0, 36)
+			LineESP.From = mousePos
+			LineESP.To = Vector2.new(screenPos.X, screenPos.Y)
+			LineESP.Visible = true
+		else
+			LineESP.Visible = false
+		end
+	else
+		LineESP.Visible = false
+	end
+end)
