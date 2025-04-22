@@ -721,4 +721,20 @@ RunService.RenderStepped:Connect(function()
 			lastJump = tick()
 		end
 	end
+end)-- 💤 Anti-AFK Feature
+local AntiAFK = false
+local VirtualUser = game:GetService("VirtualUser")
+
+-- 🔘 Toggle inside Player Tab (slightly offset so no overlap)
+createToggle(playerTab, "Anti-AFK", 290, false, function(state)
+    AntiAFK = state
+end)
+
+-- ♻️ Kick Bypass Loop
+LocalPlayer.Idled:Connect(function()
+    if AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end
 end)
