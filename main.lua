@@ -737,4 +737,88 @@ LocalPlayer.Idled:Connect(function()
         task.wait(1)
         VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end
+end)-- 🛸 FIXED & CLEANED FLY SYSTEM (NO OVERLAP + STABLE)
+local FlyEnabled = false
+local FlySpeed = 50
+local flying = false
+local flyConn = nil
+
+-- 🧠 Movement Keys
+local keys = {w=false, a=false, s=false, d=false}
+
+-- 🎮 Detect WASD
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.W then keys.w = true end
+	if input.KeyCode == Enum.KeyCode.A then keys.a = true end
+	if input.KeyCode == Enum.KeyCode.S then keys.s = true end
+	if input.KeyCode == Enum.KeyCode.D then keys.d = true end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.W then keys.w = false end
+	if input.KeyCode == Enum.KeyCode.A then keys.a = false end
+	if input.KeyCode == Enum.KeyCode.S then keys.s = false end
+	if input.KeyCode == Enum.KeyCode.D then keys.d = false end
+end)
+
+-- 🚀 Fly Logic
+local function startFlying()
+	if flying then return end
+	flying = true
+
+	local root = Character:WaitForChild("HumanoidRootPart")
+
+	local gyro = Instance.new("BodyGyro", root)
+	gyro.P = 9e4
+	gyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+	gyro.CFrame = workspace.CurrentCamera.CFrame
+
+	local bv = Instance.new("BodyVelocity", root)
+	bv.velocity = Vector3.zero
+	bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+
+	flyConn = RunService.RenderStepped:Connect(function()
+		if not flying or not FlyEnabled then return end
+
+		local moveDir = Vector3.zero
+		local camCF = workspace.CurrentCamera.CFrame
+
+		if keys.w then moveDir += camCF.LookVector end
+		if keys.s then moveDir -= camCF.LookVector end
+		if keys.a then moveDir -= camCF.RightVector end
+		if keys.d then moveDir += camCF.RightVector end
+
+		gyro.CFrame = camCF
+		bv.velocity = moveDir.Magnitude > 0 and moveDir.Unit * FlySpeed or Vector3.zero
+	end)
+end
+
+-- 🛑 Stop Fly
+local function stopFlying()
+	flying = false
+	if flyConn then flyConn:Disconnect() flyConn = nil end
+	if Character and Character:FindFirstChild("HumanoidRootPart") then
+		for _, obj in ipairs(Character.HumanoidRootPart:GetChildren()) do
+			if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
+				obj:Destroy()
+			end
+		end
+	end
+end
+
+-- ✅ Toggle (Moved to Y = 385)
+createToggle(playerTab, "Fly Mode", 385, false, function(state)
+	FlyEnabled = state
+	if state then
+		startFlying()
+	else
+		stopFlying()
+	end
+end)
+
+-- 💨 Speed Slider (Below at Y = 430)
+createSlider(playerTab, "Fly Speed", 430, FlySpeed, 10, 200, 5, function(value)
+	FlySpeed = value
 end)
