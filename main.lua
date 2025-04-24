@@ -157,7 +157,7 @@ local function showTab(tab)
 end
 
 
-createTabButton("ESP", 0, function() showTab(espTab) end)
+createTabButton("Main", 0, function() showTab(espTab) end)
 createTabButton("Player", 1, function() showTab(playerTab) end)
 createTabButton("Teleport", 2, function() showTab(teleportTab) end)
 createTabButton("Credits", 3, function() showTab(creditsTab) end)
