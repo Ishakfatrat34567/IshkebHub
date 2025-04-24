@@ -143,16 +143,24 @@ creditsTab.Position = UDim2.new(0, 0, 0, 0)
 creditsTab.BackgroundTransparency = 1
 creditsTab.Visible = false
 
+local function hideAllTabs()
+	for _, child in ipairs(tabContainer:GetChildren()) do
+		if child:IsA("Frame") then
+			child.Visible = false
+		end
+	end
+end
+
 local function showTab(tab)
-	espTab.Visible = false
-	playerTab.Visible = false
-	creditsTab.Visible = false
+	hideAllTabs()
 	tab.Visible = true
 end
 
+
 createTabButton("ESP", 0, function() showTab(espTab) end)
 createTabButton("Player", 1, function() showTab(playerTab) end)
-createTabButton("Credits", 2, function() showTab(creditsTab) end)
+createTabButton("Teleport", 2, function() showTab(teleportTab) end)
+createTabButton("Credits", 3, function() showTab(creditsTab) end)
 local function createToggle(parent, label, yPos, default, callback)
 	local toggleBtn = Instance.new("TextButton", parent)
 	toggleBtn.Size = UDim2.new(0, 250, 0, 35)
@@ -821,4 +829,77 @@ end)
 -- 💨 Speed Slider (Below at Y = 430)
 createSlider(playerTab, "Fly Speed", 430, FlySpeed, 10, 200, 5, function(value)
 	FlySpeed = value
+end)-- 🔁 FIXED: Teleport Tab Setup
+local teleportTab = Instance.new("Frame")
+teleportTab.Name = "TeleportTab"
+teleportTab.Size = UDim2.new(1, 0, 1, 0)
+teleportTab.Position = UDim2.new(0, 0, 0, 0)
+teleportTab.BackgroundTransparency = 1
+teleportTab.Visible = false
+teleportTab.Parent = tabContainer
+
+-- Remove duplicate buttons (if rerunning)
+for _, child in pairs(tabButtons:GetChildren()) do
+    if child:IsA("TextButton") and (child.Text == "Teleport" or child.Text == "Credits") then
+        child:Destroy()
+    end
+end
+
+-- 🧠 Tab Button Order Fix
+createTabButton("Teleport", 2, function() showTab(teleportTab) end)
+createTabButton("Credits", 3, function() showTab(creditsTab) end)
+
+-- 🧭 TELEPORT UI SETUP
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -40, 1, -40)
+scroll.Position = UDim2.new(0, 20, 0, 20)
+scroll.BackgroundTransparency = 1
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 6
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Name = "PlayerScrollList"
+scroll.Parent = teleportTab
+
+local layout = Instance.new("UIListLayout")
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 6)
+layout.Parent = scroll
+
+-- ⚡ Refresh player list with buttons
+local function refreshTPList()
+	for _, child in ipairs(scroll:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1, 0, 0, 35)
+			btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+			btn.TextColor3 = Color3.new(1, 1, 1)
+			btn.Font = Enum.Font.GothamBold
+			btn.TextScaled = true
+			btn.Text = "Teleport to " .. p.Name
+			btn.ZIndex = 12
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+			btn.Parent = scroll
+
+			btn.MouseButton1Click:Connect(function()
+				if Character and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+					Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+				end
+			end)
+		end
+	end
+end
+
+-- 🔄 Initial + auto refresh every 60s
+refreshTPList()
+task.spawn(function()
+	while true do
+		task.wait(60)
+		refreshTPList()
+	end
 end)
